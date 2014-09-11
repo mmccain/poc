@@ -1,9 +1,9 @@
 ====== Red Hat Accelerated Architecture:  ======
 
 ==== Master Services Runbook Template ====
-
-u suck
-  - **[[How to Use This Wiki]]**
+No idea how to make this work. 
+  
+- **[[How to Use This Wiki]]**
   - **[[Task List]]** 
   - **Design**
     - [[Design_HL|High Level]]
