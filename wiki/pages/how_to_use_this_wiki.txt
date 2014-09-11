@@ -1,0 +1,35 @@
+This wiki serves as the source document for all RHAA deployments. It is broken down into three areas: Design, Installation and Operations. In each area there are wiki pages for different implementation elements. Once customized for a given customer, this wiki becomes the authoritative installation and mentorship guide. 
+
+====== Use and Installation ======
+
+It is recommended you begin with the whole source documents. As this is developed in dokuwiki, you can copy the contents of the dokuwiki directory to create a new instance. Dokuwiki uses flat files and does not use a database. 
+
+In addition to dokuwiki, we use the following plugins, which needs to be install prior to using or editing the pages:
+
+https://www.dokuwiki.org/plugin:todo
+https://www.dokuwiki.org/plugin:wrap
+
+These plugins can be installed by selecting Admin from the top of the screen and then selecting extensions. From the extensions menu select the "Search and Install" tab and enter the name of the plugin. Select the correct plugin from the list and select install. 
+
+====== Editing the Wiki ======
+
+As is previously stated, it is advised to begin with the full wiki and eliminate the portions do not use prior to opening the wiki up to the customer.
+
+Using the Ceph Installation and Operations sections as examples, review the use of the todo and wrap plugins. They are used extensively throughout the document. Wrap is used to highlight sections as info, todo(not to be confused with the todo plugin), or download. 
+
+The todo plugin is used to provide checkboxes for each step of the installation. Dokuwiki will scan the files for all instances of todo, which it uses to create the [[Task_List]]. Please add a todo instance for each high level action to be taken during installation. 
+
+The the design documents are edited to be specific for a given customer, the portions of the wiki which will not be used should now be deleted. It is advised that at this time the customer be given access to the wiki. This will provide for them a real time interaction with the installation process. 
+
+====== Using the Wiki for Engagements ======
+
+The master RHAA document will contain no customer specific information. The first step is to walk through the design section and customize it for the customers specific design. Artwork and narrative is provided for several design types. All artwork can be found by selecting the media manager at the top of the screen. Any new artwork you may create, please add to the master RHAA images. In addition, if you find typos or other corrections, please submit your changes for acceptance into the mater RHAA document. 
+
+After the completion of the design document, it is time to begin the installation. As with design, there are many options for installation. Delete those sections which will not be used for this customer installation prior to beginning the installation and exposing the custom to the wiki. 
+
+Once your ready for the installation, select the first item to be installed. In most cases this will be storage and you will work your way up the stack from there. As you proceed through each section, capture the customers information in the wiki. The final state of each section should include all customer information required to walk through the installation once again. After completing each section, check the todo box to indicate that section is completed. This will also update the [[Task_List]]. 
+
+====== Operations ======
+
+To complete the operations section, begin by deleting those sections which are not applicable to this specific customer installation. In the remaining sections, the customer specific information must be completed. It is also advised to run each operation with the customer information to confirm each operation functions properly in the customer environment. 
+

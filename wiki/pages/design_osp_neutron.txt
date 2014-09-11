@@ -1,0 +1,63 @@
+====== RHEL OpenStack Platform with Neutron Networking ======
+
+
+The RHEL Open Stack Platform is the foundation of the CUSTOMER Cloud environment and represents a significant step forward into cloud computing. The RHEL Open Stack Platform was designed primarily for applications that have been developed for cloud environments, but also provides the framework for making the transition from basic virtualization to cloud computing. To achieve this goal, a highly available OpenStack infrastructure is part of this design (Section 4.3.4). 
+
+Below is a high level view of the RHEL OpenStack platform. Each competent is highlighted and the architecture detail provided. 
+
+{{:osp.png?800}}
+ 
+====== Dashboard (Horizon) ======
+{{:osp-horizon.png?800|}}
+
+ 
+The OpenStack Dashboard is an optional extensible web-based application for provisioning and controlling compute, storage, and networking resources.  It allows administrators and tenants alike to manage their environment based on roles assigned via the identity service.
+
+====== Identity Service (Keystone) ======
+{{:osp_keystone.png?100 |}}
+	 	 	 	 	
+This is a central authentication and authorization mechanism for all OpenStack users and services. It supports multiple forms of authentication including standard username and password credentials, token-based systems and AWS-style logins that use public/private key pairs. It can also integrate with existing directory services such as LDAP.
+
+The Identity service catalog lists all of the services deployed in an OpenStack cloud and manages authentication for them through endpoints. An endpoint is a network address where a service listens for requests. The Identity service provides each OpenStack service such as Image, Compute, or Block Storage -- with one or more endpoints.
+The Identity service uses tenants to isolate resources. By default users in one tenant can’t access resources in another even if they reside within the same OpenStack cloud deployment or physical host. The Identity service issues tokens to authenticated users. The endpoints validate the token before allowing user access. User accounts are associated with roles that define their access credentials.  
+
+We understand Service Mesh Agility will leverage the API endpoints for the integration and deployment of the Agility workloads within the OpenStack environment. 
+
+====== Compute Services (Nova) ======
+{{:osp_nova.png?100 |}}
+
+OpenStack Compute provisions and manages virtual machines. It is the backbone of OpenStack’s IaaS functionality. OpenStack Compute scales horizontally on standard hardware enabling the favorable economics of cloud computing.
+Key features of OpenStack Compute include:	
+●	Distributed and asynchronous architecture, allowing scale out fault tolerance for virtual machine instance management
+●	Management of commoditized virtual server resources, where predefined virtual hardware profiles for guests can be assigned to new instances at launch	
+●	VNC access to instances via web browsers using the Horizon web interface.
+
+====== Neutron Networking ======
+{{:osp_neutron.png?100 |
+}}
+OpenStack Networking is a scalable API-driven service for managing networks and IP addresses. OpenStack Networking gives users self-service control over their network configurations. Users can define, separate, and join networks on demand. This allows for flexible network models that can be adapted to fit the requirements of different applications. OpenStack Networking has a pluggable architecture that supports numerous virtual networking technologies as well as native Linux networking mechanisms including openvswitch and linuxbridge. 
+
+====== Image Service (Glance) ======
+{{:osp_glance.png?100 |}}
+	 	 	 	 	
+This service registers and delivers virtual machine images. They can be copied via snapshot and immediately stored as the basis for new instance deployments. Stored images allow OpenStack users and administrators to provision multiple servers quickly and consistently. The Image Service API provides a standard RESTful interface for querying information about the images.
+
+By default the Image Service stores images in the /var/lib/glance/images directory of the local server’s file system where Glance is installed. The Glance API can also be configured to cache images in order to reduce image staging time. The Image Service supports multiple back end storage technologies including Swift (the OpenStack Object Storage service), Amazon S3, and Red Hat Storage Server. 
+Glance images may be represented within Service Mesh Agility as repositories making images available as artifacts when building blueprints.  
+
+====== Object Storage (Swift) ======
+{{:osp_swift.png?100 |}}
+
+Swift is a highly available distributed object store. The Swift architecture is generally comprised of several servers with unique roles. These include the proxy server, object servers, and container servers. The detailed storage architecture is presented in a separate section of the CUSTOMER architecture.
+
+====== Block Storage (Cinder) ======
+{{:osp_cinder.png?100 |}}
+	 	 	 	 	
+While the OpenStack Compute service provisions ephemeral storage for deployed instances based on their hardware profiles, the OpenStack Block Storage service provides compute instances with persistent block storage. Persistent block storage can survive instance termination. It can also be moved between instances like any external storage device. CUSTOMER will be leveraging Cinder on Ceph to provide persistent storage for virtualized workloads. 
+
+Cinder in the CUSTOMER environment will provide:	
+●	Persistent block storage devices for compute instances 	
+●	Self-service volume creation, attachment, and deletion	
+●	A unified interface for numerous storage platforms	
+●	Volume snapshots
+●	Boot from block device

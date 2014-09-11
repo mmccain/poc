@@ -1,0 +1,150 @@
+====== Running Ceph Commands ======
+
+Ceph uses Cephx to authenticate and authorize request made to the cluster. In order to operate and maintain a Ceph cluster, an operator needs a key to connect to the Ceph cluster. By default, an admin key is created on each Monitor machine.
+
+Every operation command, whether it concerns OSD, Monitors, or Placement Groups, must be executed from a Monitor. It is possible to copy this key to an Admin node (e.g. Calamari), which will act as a single point of administration for the Ceph cluster.
+
+The admin key is only readable by the root user and is located in /etc/ceph/ceph.client.admin.keyring. Seeing the following message while running a ceph command typically indicates that either the user does not have the permissions to read the key or that the key does not exist:
+
+<WRAP todo 80%>
+Machine$ ceph health\\
+2014-08-07 09:33:20.794965 7fb03ad9b700 -1 monclient(hunting): ERROR: missing keyring, cannot use cephx for authentication\\
+2014-08-07 09:33:20.794973 7fb03ad9b700  0 librados: client.admin initialization error (2) No such file or directory\\
+Error connecting to cluster: ObjectNotFound\\
+Machine$ $ whoami\\
+user\\
+Machine$ $ ls -l /etc/ceph/ceph.client.admin.keyring\\
+-rw------- 1 root root 63 Jul 21 16:05 /etc/ceph/ceph.client.admin.keyring\\
+Machine# su -\\
+Machine# whoami\\
+root\\
+# ceph health\\
+HEALTH_OK </WRAP>
+
+In this case, we are logged in as “user”, but the keyring file is only readable by root, logging in as root solves the issue. 
+
+====== Common Operations Commands ======
+<WRAP info 80%>
+The goal of this section is just to present and explain tools used to check your Ceph cluster status and health. The procedures to fix these issues are described later in this document.
+Calamari can also be used to view the Ceph cluster status from the dashboard page
+Important:	More information on Common operations commands is available here: http://ceph.com/docs/master/rados/operations/monitoring/
+</WRAP>
+
+Ceph provides a generic command to check the global health of the cluster.
+
+<WRAP todo 80%>
+# ceph health\\
+HEALTH_OK\\
+</WRAP>
+
+This command can return three values:\\
+•	HEALTH_OK: Everything components are up and running\\
+•	HEALH_WARN: There is one or multiple issue(s) with the Ceph cluster, investigation is necessary. A performance impact on the clients is possible.\\
+•	HEALTH_ERR: There is an important error on the Ceph cluster. Some clients may experience errors.\\
+
+To get more detail on the failure, one can run:
+<WRAP todo 80%>
+# ceph health detail\\
+HEALTH_ERR 38 pgs degraded; 2 pgs inconsistent; 44 pgs stuck unclean; recovery 13/286938 objects degraded (0.005%); 2 scrub errors\\
+pg 18.a7 is stuck unclean since forever, current state active+degraded, last acting [10,1]\\
+pg 16.34 is stuck unclean for 1431806.504008, current state active+degraded, last acting [2,7]\\
+pg 16.43 is stuck unclean for 1431806.499190, current state active+degraded, last acting [2,11]\\
+pg 16.42 is stuck unclean for 1431806.504740, current state active+degraded, last acting [0,12]\\
+[…] </WRAP>
+
+If an operator wants to have a more global status of the Ceph cluster, it is possible to run:
+<WRAP todo 80%>
+# ceph -s\\
+    cluster 7207cf9d-aaed-4bdd-a58e-0769f6606bc4\\
+     health HEALTH_OK\\
+     monmap e2: 3 mons at {daisy=192.168.122.114:6789/0,eric=192.168.122.115:6789/0,frank=192.168.122.116:6789/0}, election epoch 10, quorum 0,1,2 daisy,eric,frank\\
+     osdmap e54: 9 osds: 9 up, 9 in\\
+      pgmap v95: 192 pgs, 3 pools, 0 bytes data, 0 objects\\
+            310 MB used, 82534 MB / 82844 MB avail\\
+                 192 active+clean\\
+</WRAP> 
+•	cluster: unique ID for the Ceph cluster\\
+•	health: global health of the cluster\\
+•	monmap: Monitor maps describing the number of Monitors and their IP addresses\\
+•	osdmap: Description of the OSD maps. How may OSDs are added to to the cluster, how many are up (daemon is running and reachable by peers), how many are in (serving IO).\\
+•	pgmap: Number of placement groups and pools in the cluster and statistics on usage.\\
+
+To see the Ceph cluster activity in real time, one can run the Ceph watch mode:\\
+<WRAP todo 80%>
+# ceph -w
+2014-08-07 10:40:29.631941 mon.0 [INF] pgmap v96: 192 pgs: 192 active+clean; 4096 kB data, 310 MB used, 82534 MB / 82844 MB avail; 3834 B/s wr, 0 op/s//
+2014-08-07 10:40:30.644292 mon.0 [INF] pgmap v97: 192 pgs: 192 active+clean; 12288 kB data, 326 MB used, 82518 MB / 82844 MB avail; 11494 B/s wr, 0 op/s//
+2014-08-07 10:40:31.680941 mon.0 [INF] pgmap v98: 192 pgs: 192 active+clean; 28672 kB data, 366 MB used, 82478 MB / 82844 MB avail; 11993 kB/s wr, 2 op/s//
+2014-08-07 10:40:34.045125 mon.0 [INF] pgmap v99: 192 pgs: 192 active+clean; 45056 kB data, 422 MB used, 82422 MB / 82844 MB avail; 9637 kB/s wr, 2 op/s//
+2014-08-07 10:40:35.102191 mon.0 [INF] pgmap v100: 192 pgs: 192 active+clean; 77824 kB data, 605 MB used, 82239 MB / 82844 MB avail; 14533 kB/s wr, 3 op/s </WRAP>
+
+The watch mode will display statistics on current IO and also any event happening (e.g. OSD failure). Each line contains a criticality level INF, WARN, and ERR.
+Because the watch mode is real time only, this output is also saved in a log file, located on every monitor under /var/log/ceph/ceph.log. 
+
+<WRAP todo 80%>
+# tail /var/log/ceph/ceph.log\\
+2014-08-07 10:42:51.217715 mon.0 192.168.122.114:6789/0 70 : [INF] pgmap v117: 192 pgs: 192 active+clean; 400 MB data, 2388 MB used, 80456 MB / 82844 MB avail\\
+2014-08-07 10:42:54.824688 mon.0 192.168.122.114:6789/0 71 : [INF] pgmap v118: 192 pgs: 192 active+clean; 400 MB data, 2278 MB used, 80566 MB / 82844 MB avail\\
+2014-08-07 10:42:55.836733 mon.0 192.168.122.114:6789/0 72 : [INF] pgmap v119: 192 pgs: 192 active+clean; 400 MB data, 2164 MB used, 80680 MB / 82844 MB avail\\
+2014-08-07 10:42:56.866373 mon.0 192.168.122.114:6789/0 73 : [INF] pgmap v120: 192 pgs: 192 active+clean; 400 MB data, 2086 MB used, 80758 MB / 82844 MB avail\\
+2014-08-07 10:42:59.159067 mon.0 192.168.122.114:6789/0 74 : [INF] pgmap v121: 192 pgs: 192 active+clean; 400 MB data, 1877 MB used, 80966 MB / 82844 MB avail\\
+2014-08-07 10:43:00.196079 mon.0 192.168.122.114:6789/0 75 : [INF] pgmap v122: 192 pgs: 192 active+clean; 400 MB data, 1755 MB used, 81089 MB / 82844 MB avail\\
+2014-08-07 10:43:01.229620 mon.0 192.168.122.114:6789/0 76 : [INF] pgmap v123: 192 pgs: 192 active+clean; 400 MB data, 1511 MB used, 81333 MB / 82844 MB avail </WRAP>
+
+====== OSD Service Commands ======
+
+<WRAP info 80%>
+More information on OSD operations is available here: http://ceph.com/docs/master/rados/operations/monitoring-osd-pg/ </WRAP>
+
+To start, shutdown, or restart an specific OSD:
+
+<WRAP todo 80%>
+# service ceph <start|stop|restart> osd.<ID> </WRAP>
+
+To start, shutdown, or restart all the OSDs on a host:
+<WRAP todo 80%>
+# service ceph <start|stop|restart> osd</WRAP>
+
+====== Adding OSDs ======
+
+To add a new OSD to the cluster, log in to the Calamari machine and go to the ICE directory, then create the OSD:
+<WRAP todo 80%>
+$ ssh Calamari\\
+$ cd ice\\
+~ice$ ceph-deploy osd create host:disk:journal</WRAP>
+
+Where host is the hostname of the machine, disk is the new disk to add and journal is the journal disk.
+<WRAP info 80%>
+The disk and journal parameter are disks and not partition (e.g. sdb and not sdb1). ceph-deploy will automatically create partitions for the OSD and journal based on the informations set in the ceph configuration file or Ceph’s defaults. </WRAP>
+
+====== Monitor service commands ======
+<WRAP info 80%>
+More information on Monitor troubleshooting is available here: http://ceph.com/docs/master/rados/troubleshooting/troubleshooting-mon </WRAP>
+
+To start/restart/shutdown a Monitor, SSH into the machine, then run:
+<WRAP todo 80%>
+# service ceph <start|restart|stop> mon </WRAP>
+
+====== Changing a monitor IP address ======
+
+Changing a monitor IP address is a non-trivial exercise. In the rare event where you would need to perform such action, the process is described in the Ceph documentation here: http://ceph.com/docs/master/rados/operations/add-or-rm-mons/#changing-a-monitor-s-ip-address
+
+====== Placement groups operations ======
+
+<WRAP info 80%>
+More information about Placement Groups is available here: http://ceph.com/docs/master/rados/operations/placement-groups/</WRAP>
+
+The ceph -s command display the state of every placement group in the Ceph cluster:
+<WRAP todo 80%>
+# ceph -s\\
+    cluster 7207cf9d-aaed-4bdd-a58e-0769f6606bc4\\
+     health HEALTH_OK\\
+     monmap e2: 3 mons at {daisy=192.168.122.114:6789/0,eric=192.168.122.115:6789/0,frank=192.168.122.116:6789/0}, election epoch 10, quorum 0,1,2 daisy,eric,frank\\
+     osdmap e54: 9 osds: 9 up, 9 in\\
+      pgmap v95: 192 pgs, 3 pools, 0 bytes data, 0 objects\\
+            310 MB used, 82534 MB / 82844 MB avail\\
+                 192 active+clean </WRAP>
+                 
+A healthy placement is active+clean. Active means that this PG can serve IO request, clean means that this PG has no inconsistencies and that all the replica are at the same version.
+A list of all the different PG states is available here: http://ceph.com/docs/master/rados/operations/pg-states/
+If a placement is stalled, incomplete, down, or inconsistent, this is an issue that needs to be investigated

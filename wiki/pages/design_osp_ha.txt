@@ -1,0 +1,4 @@
+====== RHEL OpenStack Platform HA Configuration ======
+
+In OpenStack, availability falls into two categories. Infrastructure availability and application availability. In this section we are specifically addressing the availability requirements of the RHEL OpenStack Platform infrastructure. 
+

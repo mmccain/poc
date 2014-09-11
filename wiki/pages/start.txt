@@ -1,0 +1,40 @@
+====== Red Hat Accelerated Architecture:  ======
+
+==== Master Services Runbook Template ====
+
+  - **[[How to Use This Wiki]]**
+  - **[[Task List]]** 
+  - **Design**
+    - [[Design_HL|High Level]]
+    - [[Design_CForms|CloudForms]]
+    - [[Design_Shift|OpenShift]]
+    - [[Design_OSP_Basic|OpenStack Basic]]
+    - [[Design_OSP_Neutron|OpenStack Neutron Networking]]
+    - [[Design_OSP_HA|OpenStack HA]]
+    - [[Design_Store|Storage]]
+  - **Installation**
+    - [[Install_CForms|CloudForms]]
+    - [[Install_Shift|OpenShift]]
+    - [[Install_OSP_NOVA|OpenStack Nova Networking]]
+    - [[Install_OSP_Neutron|OpenStack Neutron Networking]]
+    - [[Install_OSP_NSX|OpenStack Neutron NSX]]
+    - [[Install_OSP_HA|OpenStack HA]]
+    - [[Install_Ceph|Ceph]]
+    - [[Install_Gluster|Gluster]]
+  - **Operations**
+    - [[Ops_Orch|Orchestration]]
+    - [[Ops_CForms|CloudForms]]
+    - [[Ops_Ceph|Ceph Storage]]
+    - [[Creating an ephemeral workload instance]]
+    - [[Creating a persistent workload instance]]
+    - [[Migrating a persistent workload instance]]
+    - [[Infrastructure backup and restore]]
+    - [[Workload backup and restore]]
+    - [[Monitoring]]
+  - **Optimization**
+    - [[Optimize_CForms|CloudForms]]
+    - [[Optimize_Shift|OpenShift]]
+    - [[Optimize_OSP|OpenStack]]
+    - [[Optimize_Ceph|Ceph]]
+    - [[Optimize_Gluster|Gluster]]
+  - [[Troubleshooting]]

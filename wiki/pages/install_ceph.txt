@@ -1,0 +1,315 @@
+==== Ceph Storage Installation ====
+In this section are detail the steps used for the deployment of the Ceph Cluster.
+==== Pre-installation Checklist ====
+To be completed...
+
+==== NTP Configuration ==== 
+
+**<todo start:2014-08-25 due:2014-09-30 @mmariani>NTP Configuration</todo>**
+
+To ensure that the NTP configuration is correct, run:
+\\
+<WRAP todo 80%>
+
+lplcldiuosd1# grep yourdomain.com /etc/ntp.conf\\
+
+server time1.yourdomain.com\\
+server time2.yourdomain.com\\
+server time3.yourdomain.com\\
+
+lplcldiuosd2# grep yourdomain.com /etc/ntp.conf\\
+
+server time1.yourdomain.com\\
+server time2.yourdomain.com\\
+server time3.yourdomain.com\\
+
+lplcldiuosd3# grep yourdomain.com /etc/ntp.conf\\
+
+server time1.yourdomain.com\\
+server time2.yourdomain.com\\
+server time3.yourdomain.com\\ </WRAP>
+
+You should have these 3 servers configured on all 3 storage nodes.
+==== IPTables Configuration ====
+
+<todo start:2014-08-25 due:2014-09-30 @mmariani>IPTables Configuration</todo>
+
+Disable IPTables by flushing all the rules and preventing these rules to be applied at the next boot:
+
+<WRAP todo 80%>
+lplcldiuosd1# systemctl stop firewalld\\ 
+lplcldiuosd1# chkconfig firewalld stop\\
+lplcldiuosd2# systemctl stop firewalld\\
+lplcldiuosd2# chkconfig firewalld stop\\
+lplcldiuosd3# systemctl stop firewalld\\
+lplcldiuosd3# chkconfig firewalld stop </WRAP>
+
+
+==== SELinux Configuration ====
+
+<todo start:2014-08-25 due:2014-09-30 @mmariani>SELinux Configuration</todo>
+
+We set SELinux to Permissive instead of Enforcing. To do so:
+
+<WRAP todo 80%>
+lplcldiuosd1# setenforce Permissive\\ 
+lplcldiuosd2# setenforce Permissive\\ 
+lplcldiuosd3# setenforce Permissive</WRAP>
+
+To prevent SELinux from getting back to Enforce mode on the next boot, edit /etc/selinux/config and change “SELINUX=enforcinf” to “SELINUX=permissive”. Your /etc/selinux/config should now look like, for all 3 hosts:
+
+<WRAP todo 80%>
+[root@lplcldiuosd3 ~]# cat /etc/selinux/config\\
+# This file controls the state of SELinux on the system.\\
+# SELINUX= can take one of these three values:\\
+#     enforcing - SELinux security policy is enforced.\\
+#     permissive - SELinux prints warnings instead of enforcing.\\
+#     disabled - No SELinux policy is loaded.\\
+SELINUX=permissive\\
+# SELINUXTYPE= can take one of these two values:\\
+#     targeted - Targeted processes are protected,\\
+#     minimum - Modification of targeted policy. Only selected processes are protected.\\
+#     mls - Multi Level Security protection.\\
+SELINUXTYPE=targeted</WRAP>
+
+==== ICE Setup ====
+
+<todo start:2014-08-25 due:2014-09-30 @mmariani>ICE Setup</todo>
+
+Prior to installing Ceph we need to download the Inktank Ceph Enterprise (or ICE) 1.2 packages. For reference, ICE 1.2 is based on the Ceph Firefly (0.80.x) release.
+
+<WRAP download 80%>
+Download the ICE package from https://download.inktank.com/enterprise/1.2/. The package name will be “ICE-1.2-rhel7.tar.gz”. </WRAP>
+
+<WRAP tip 80%>
+Note	download.inktank.com requires authentication. The point of contact at American Express is Robert Chapman</WRAP>
+
+After downloading the package, copy it to lplcldiuosd3. From a Linux or Mac OS based system, open a terminal and run:
+<WRAP todo 80%>
+local_machine$ scp ICE-1.2-rhel7.tar.gz root@10.68.57.147:/root</WRAP>
+
+If using Windows, you use a tool such as “WinSCP” to copy the file over to lplcldiuosd3 in the /root directory.
+Log in to lplcldiuosd3 and run the following:
+
+<WRAP todo 80%>
+local_machine$ ssh root@10.68.57.147\\
+lplcldiuosd3# cd /root\\
+lplcldiuosd3# mkdir ice\\
+lplcldiuosd3# tar –xzf ICE-1.2-rhel7.tar.gz –C ice </WRAP>
+
+This will extract the ICE archive into the “ice” directory.
+
+**Now setup ICE**
+
+<WRAP todo 80%>
+lplcldiuosd3# cd /root/ice\\
+lplcldiuosd3# python ice_setup.py\\
+--\\
+> ==== interactive mode ====\\
+-->\\
+--> follow the prompts to complete the interactive mode\\
+--> if specific actions are required (e.g. just install Calamari)\\
+--> cancel this script with Ctrl-C, and see the help menu for details\\
+--> default values are presented in brackets\\
+--> press Enter to accept a default value, if one is provided\\
+--> do you want to continue? [PRESS ENTER] </WRAP>
+
+The process will produce a lot of output, this script will setup the following:\\
+
+  * Calamari & ceph-deploy repo setup
+  * Calamari installation
+  * ceph-deploy installation
+  * ceph repository setup
+  * calamari-minion repository setup
+
+The next step is to setup Calamari:\\
+
+<WRAP todo 80%>
+lplcldiuosd3# calamari-ctl initialize</WRAP>
+
+This will setup the Calamari database.\\
+
+<WRAP tip 80%>
+If there was no previous Calamari install on this machine, the process will ask you for a Calamari user and password. This password will be used to login to the web interface.</WRAP>
+
+==== Ceph Cluster Deployment ====
+
+<todo start:2014-08-25 due:2014-09-30 @mmariani>Ceph Cluster Deployment</todo>
+
+Install Ceph on all the monitors and OSD hosts:\\
+<WRAP todo 80%>
+lplcldiuosd3# cd /root/ice\\
+lplcldiuosd3# ceph-deploy install --release 1.2 lplcldiuosd1 lplcldiuosd2 lplcldiuosd3</WRAP>
+
+Create the initial cluster configuration:\\
+
+<WRAP todo 80%>
+lplcldiuosd3# cd /root/ice
+lplcldiuosd3# ceph-deploy new lplcldiuosd1 lplcldiuosd2 lplcldiuosd3</WRAP>
+
+This command will create a generic configuration file (ceph.conf) and a shared secret (ceph.mon.keyring) for the Ceph monitors to be able to communicate with each other.
+
+<WRAP center round important 60%>
+You should always double check the ceph.conf to make sure that, at least, the network configuration is correct.</WRAP>
+<WRAP tip 80%>
+lplcldiuosd1 lplcldiuosd2 lplcldiuosd3 are the Ceph monitors </WRAP>
+
+Edit the configuration so it looks like below:
+<WRAP todo 80%>
+lplcldiuosd3# cd /root/ice\\
+lplcldiuosd3# cat ceph.conf\\
+[global]\\
+fsid = 46548691-230b-49b5-a7b4-3e2f12508cfa\\
+mon_initial_members = lplcldiuosd1, lplcldiuosd2, lplcldiuosd3\\
+mon_host = 10.68.56.145,10.68.56.146,10.68.56.147\\
+auth_cluster_required = cephx\\
+auth_service_required = cephx\\
+auth_client_required = cephx\\
+filestore_xattr_use_omap = true\\
+mon osd min down reporters = 7</WRAP>
+
+This is the ceph.conf that will be used to deploy all the monitors and OSDs. The parameter we added is in bold. 
+Deploy the monitors:
+
+<WRAP todo 80%>
+lplcldiuosd3# cd /root/ice\\
+lplcldiuosd3# ceph-deploy mon create-initial</WRAP>
+
+This will deploy all the monitors under mon_initial_members in ceph.conf.\\
+Get the keys generated when the monitors started. These keys will allow us to later deploy OSDs:\\
+<WRAP todo 80%>
+lplcldiuosd3# cd /root/ice\\
+lplcldiuosd3# ceph-deploy gatherkeys lplcldiuosd3</WRAP>
+
+If the disks were previously used, you will need to zap them, before deploying OSDs:
+
+<WRAP todo 80%>
+lplcldiuosd3# cd /root/ice\\
+lplcldiuosd3# ceph-deploy disk zap lplcldiuosd1:sdb lplcldiuosd1:sdc lplcldiuosd1:sdd lplcldiuosd1:sde lplcldiuosd1:sdf lplcldiuosd1:sdg lplcldiuosd1:sdh\\
+lplcldiuosd3# ceph-deploy disk zap lplcldiuosd2:sdb lplcldiuosd2:sdc lplcldiuosd2:sdd lplcldiuosd2:sde\\
+lplcldiuosd3# ceph-deploy disk zap lplcldiuosd3:sdb lplcldiuosd3:sdc lplcldiuosd3:sdd lplcldiuosd3:sde</WRAP>
+
+Deploy the OSDs:
+
+<WRAP todo 80%>
+lplcldiuosd3# cd /root/ice\\
+lplcldiuosd3# ceph-deploy osd create lplcldiuosd1:sdb lplcldiuosd1:sdc lplcldiuosd1:sdd lplcldiuosd1:sde lplcldiuosd1:sdf lplcldiuosd1:sdg lplcldiuosd1:sdh\\
+lplcldiuosd3# ceph-deploy osd create lplcldiuosd2:sdb lplcldiuosd2:sdc lplcldiuosd2:sdd lplcldiuosd2:sde\\
+lplcldiuosd3# ceph-deploy osd create lplcldiuosd3:sdb lplcldiuosd3:sdc lplcldiuosd3:sdd lplcldiuosd3:sde</WRAP>
+
+Move the hosts to the correct location in the CRUSHmap:
+
+<WRAP todo 80%>
+lplcldiuosd3# ceph osd crush move lplcldiuosd1 root=default region=pxh datacenter=trcn room=randdlab\\
+lplcldiuosd3# ceph osd crush move lplcldiuosd2 root=default region=pxh datacenter=trcn room=randdlab\\
+lplcldiuosd3# ceph osd crush move lplcldiuosd3 root=default region=pxh datacenter=trcn room=randdlab</WRAP>
+
+Verify that the hosts have been moved correctly:
+
+<WRAP todo 80%>
+lplcldiuosd3# ceph osd tree\\
+# id	weight	type name	up/down	reweight\\
+-1	3.07	root default\\
+-7	3.07		region pxh\\
+-6	3.07			datacenter trcn\\
+-5	3.07				room randdlab\\
+-2	1.19					host lplcldiuosd1\\
+0	0.13						osd.0	up	1\\
+1	0.27						osd.1	up	1\\
+2	0.27						osd.2	up	1\\
+3	0.13						osd.3	up	1\\
+4	0.13						osd.4	up	1\\
+5	0.13						osd.5	up	1\\
+6	0.13						osd.6	up	1\\
+-3	0.94					host lplcldiuosd2\\
+7	0.13						osd.7	up	1\\
+8	0.27						osd.8	up	1\\
+9	0.27						osd.9	up	1\\
+10	0.27						osd.10	up	1\\
+-4	0.94					host lplcldiuosd3\\
+11	0.13						osd.11	up	1\\
+12	0.27						osd.12	up	1\\
+13	0.27						osd.13	up	1\\
+14	0.27						osd.14	up	1</WRAP>
+
+==== Pools for OpenStack Configuration ====
+
+<todo start:2014-08-25 due:2014-09-30 @mmariani>Pools for OpenStack Configuration</todo>
+
+In our OpenStack setup, we will use two Ceph pools:\\
+  * images: Used by OpenStack Glance to store and retrieve “templates” or golden images
+  * volumes; Used by OpenStack Cinder, the block devices in Cinder will be attached to Workload/VMs.
+Create the images and volumes pools:\\
+<WRAP todo 80%>
+lplcldiuosd3# ceph osd pool create volumes 256\\
+lplcldiuosd3# ceph osd pool create images 256</WRAP>
+
+256 is the number of placement groups for each pool. These numbers have been determined based on the total number of OSDs in the Ceph cluster. If the cluster grows, these numbers may not be adequate.
+Create keyrings for OpenStack Glance and Cinder to be able to access these pools:\\
+
+<WRAP todo 80%>
+lplcldiuosd3# ceph auth get-or-create client.cinder mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=volumes, allow rx pool=images' -o /etc/ceph/ceph.client.cinder.keyring\\
+lplcldiuosd3# ceph auth get-or-create client.glance mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=images' -o /etc/ceph/ceph.client.glance.keyring</WRAP>
+
+This will save the keyrings in lplcldiuosd3 under /etc/ceph/. We will use these keys when integrating Ceph with OpenStack. 
+
+==== Scripting ====
+
+<todo start:2014-08-25 due:2014-09-30 @mmariani>Scripting</todo>
+
+We created a script to automate a Ceph cluster creation, destruction, and rebuilding. The script is available on lplcldiuosd3 under /root.
+
+<WRAP center round important 60%>
+This script is not intended for use outside of the lab environment
+</WRAP>
+
+To run it:
+
+<WRAP todo 80%>
+[root@lplcldiuosd3 ~]# ./rebuild_cluster.sh\\
+ \\
+/!\ WARNING /!\\\
+This script is ONLY intended to run for the lab\\
+environment. It will destroy the current running\\
+cluster and all of its data. Please use carefully.\\
+You should only run this script from lplcldiuosd3\\
+/!\ WARNING /!\\\
+ \\
+type 'OK' to destroy and rebuild\\
+or 'NEW' to build a new cluster\\
+or 'DESTROY' to destroy the cluster\\
+
+entry ></WRAP>
+
+OK will destroy and rebuild the cluster.  It will automatically discover the OSDs that need to be redeployed. This will not work properly with external Ceph journals (e.g. SSD), or if the OSD disks are not mounted.
+NEW will create a new cluster and prompt the user for the list of disk to deploy for each host
+DESTROY will destroy an existing cluster. .  It will automatically discover the OSDs that need to be destroyed.
+If more machines are added to the lab or changes are made to the configuration, you can edit the global variables defined at the beginning of the script:
+
+<WRAP todo 80%>
+[root@lplcldiuosd3 ~]# head -n 18 rebuild_cluster.sh\\
+#! /bin/bash\\
+ \\
+# rebuild cluster.sh\\
+# This scripts tears down the cluster\\
+# and rebuild it with all the pre-setup\\
+# required\\
+# This script is intended to run only in the lab environment\\
+# if you had nodes (storage or monitors), edit the global variables\\
+# below accordingly\\
+ \\
+HOSTS="lplcldiuosd1 lplcldiuosd2 lplcldiuosd3"\\
+MON_HOSTS="lplcldiuosd1 lplcldiuosd2 lplcldiuosd3"\\
+OSD_HOSTS="lplcldiuosd1 lplcldiuosd2 lplcldiuosd3"\\
+ICE_HOST="lplcldiuosd3"\\
+ICE_DIRECTORY="/root/ice"\\
+ICE_RELEASE="1.2"\\
+OSD_HOST_LOCATION="root=default region=pxh datacenter=trcn room=randdlab"</WRAP>
+
+**HOSTS** is the list of all the hosts that will be in the cluster (Ceph monitors and OSDs).\\
+**MON_HOSTS** is the list of Ceph monitors hosts\\
+**OSD_HOSTS** is the list of Ceph OSD hosts\\
+**ICE_HOST** is the host that will install and deploy Inktank Ceph Enterprise to all the hosts. Calamari will also be installed on this host.\\
+**ICE_DIRECTORY** is the directory the ICE package (ICE-1.2-rhel7.tar.gz) was extracted to.\\
+**ICE_RELEASE** is the ICE version that will be installed.\\
+**OSD_HOST_LOCATION** is the location all the hosts will be moved into in the CRUSH map.\\

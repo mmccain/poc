@@ -1,0 +1,12 @@
+==== Ceph Storage Installation ====
+
+=== Pre-installation Checklist ===
+=== NTP Configuration ===
+=== IPTables Configuration ===
+=== SELinux Configuration ===
+=== ICE Setup ===
+=== Ceph Cluster Deployment ===
+=== Pools for OpenStack Configuration ===
+=== Scripting ===
+
+
