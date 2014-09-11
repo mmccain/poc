@@ -1,5 +1,5 @@
 ====== Red Hat Accelerated Architecture:  ======
-
+This is a GIT test.
 ==== Master Services Runbook Template ====
   
 - **[[How to Use This Wiki]]**
