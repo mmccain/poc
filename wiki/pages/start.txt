@@ -1,7 +1,6 @@
 ====== Red Hat Accelerated Architecture:  ======
 
 ==== Master Services Runbook Template ====
-No idea how to make this work. 
   
 - **[[How to Use This Wiki]]**
   - **[[Task List]]** 
